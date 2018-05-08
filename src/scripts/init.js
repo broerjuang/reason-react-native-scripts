@@ -1,46 +1,45 @@
 // @flow
 
-import chalk from 'chalk';
-import fse from 'fs-extra';
-import path from 'path';
-import pathExists from 'path-exists';
-import spawn from 'cross-spawn';
-import log from '../util/log';
-import install from '../util/install';
+import chalk from "chalk";
+import fse from "fs-extra";
+import path from "path";
+import pathExists from "path-exists";
+import spawn from "cross-spawn";
+import log from "../util/log";
+import install from "../util/install";
 
 // UPDATE DEPENDENCY VERSIONS HERE
 const DEFAULT_DEPENDENCIES = {
-  expo: '^24.0.0',
-  react: '16.0.0',
-  'react-native': '0.51.0',
-  'bs-platform': '^2.1.0',
-  'bs-react-native': '~0.5.0',
-  'reason-react': '~0.3.0',
+  expo: "^24.0.0",
+  react: "16.0.0",
+  "react-native": "0.51.0",
+  "bs-platform": "^2.1.0",
+  "bs-react-native": "~0.5.0",
+  "reason-react": "^0.4.1"
 };
 
 // TODO figure out how this interacts with ejection
-const DEFAULT_DEV_DEPENDENCIES = {
-};
+const DEFAULT_DEV_DEPENDENCIES = {};
 
 module.exports = async (
   appPath: string,
   appName: string,
   verbose: boolean,
-  cwd: string = ''
+  cwd: string = ""
 ) => {
-  const ownPackageName: string = require('../../package.json').name;
-  const ownPath: string = path.join(appPath, 'node_modules', ownPackageName);
-  const useYarn: boolean = await pathExists(path.join(appPath, 'yarn.lock'));
-  const npmOrYarn = useYarn ? 'yarn' : 'npm';
+  const ownPackageName: string = require("../../package.json").name;
+  const ownPath: string = path.join(appPath, "node_modules", ownPackageName);
+  const useYarn: boolean = await pathExists(path.join(appPath, "yarn.lock"));
+  const npmOrYarn = useYarn ? "yarn" : "npm";
 
   // FIXME(perry) remove when npm 5 is supported
   if (!useYarn) {
     let npmVersion = spawn
-      .sync('npm', ['--version'])
+      .sync("npm", ["--version"])
       .stdout.toString()
       .trim();
 
-    if (npmVersion.match(/\d+/)[0] === '5') {
+    if (npmVersion.match(/\d+/)[0] === "5") {
       console.log(
         chalk.yellow(
           `
@@ -65,27 +64,27 @@ https://github.com/npm/npm/issues/16991
   }
 
   const readmeExists: boolean = await pathExists(
-    path.join(appPath, 'README.md')
+    path.join(appPath, "README.md")
   );
   if (readmeExists) {
     await fse.rename(
-      path.join(appPath, 'README.md'),
-      path.join(appPath, 'README.old.md')
+      path.join(appPath, "README.md"),
+      path.join(appPath, "README.old.md")
     );
   }
 
-  const appPackagePath: string = path.join(appPath, 'package.json');
+  const appPackagePath: string = path.join(appPath, "package.json");
   const appPackage = JSON.parse(await fse.readFile(appPackagePath));
 
   // mutate the default package.json in any ways we need to
   appPackage.main =
-    './node_modules/reason-react-native-scripts/build/bin/crna-entry.js';
+    "./node_modules/reason-react-native-scripts/build/bin/crna-entry.js";
   appPackage.scripts = {
-    start: 'react-native-scripts start',
-    eject: 'react-native-scripts eject',
-    android: 'react-native-scripts android',
-    ios: 'react-native-scripts ios',
-    test: 'node node_modules/jest/bin/jest.js --watch',
+    start: "react-native-scripts start",
+    eject: "react-native-scripts eject",
+    android: "react-native-scripts android",
+    ios: "react-native-scripts ios",
+    test: "node node_modules/jest/bin/jest.js --watch"
   };
 
   // TODO figure out integration with jest
@@ -112,27 +111,27 @@ https://github.com/npm/npm/issues/16991
   await fse.writeFile(appPackagePath, JSON.stringify(appPackage, null, 2));
 
   // Copy the files for the user
-  await fse.copy(path.join(ownPath, 'template'), appPath);
+  await fse.copy(path.join(ownPath, "template"), appPath);
 
   // Rename gitignore after the fact to prevent npm from renaming it to .npmignore
   try {
     await fse.rename(
-      path.join(appPath, 'gitignore'),
-      path.join(appPath, '.gitignore')
+      path.join(appPath, "gitignore"),
+      path.join(appPath, ".gitignore")
     );
   } catch (err) {
     // Append if there's already a `.gitignore` file there
-    if (err.code === 'EEXIST') {
-      const data = await fse.readFile(path.join(appPath, 'gitignore'));
-      await fse.appendFile(path.join(appPath, '.gitignore'), data);
-      await fse.unlink(path.join(appPath, 'gitignore'));
+    if (err.code === "EEXIST") {
+      const data = await fse.readFile(path.join(appPath, "gitignore"));
+      await fse.appendFile(path.join(appPath, ".gitignore"), data);
+      await fse.unlink(path.join(appPath, "gitignore"));
     } else {
       throw err;
     }
   }
   const { code, command, args } = await install(appPath);
   if (code !== 0) {
-    console.error('Failed to install');
+    console.error("Failed to install");
     // console.error(`\`${command} ${args.join(' ')}\` failed`);
     return;
   }
@@ -152,39 +151,39 @@ https://github.com/npm/npm/issues/16991
 Success! Created ${appName} at ${appPath}
 Inside that directory, you can run several commands:
 
-  ${chalk.cyan(npmOrYarn + ' start')}
+  ${chalk.cyan(npmOrYarn + " start")}
     Starts the development server so you can open your app in the Expo
     app on your phone.
 
-  ${chalk.cyan(npmOrYarn + ' run ios')}
+  ${chalk.cyan(npmOrYarn + " run ios")}
     (Mac only, requires Xcode)
     Starts the development server and loads your app in an iOS simulator.
 
-  ${chalk.cyan(npmOrYarn + ' run android')}
+  ${chalk.cyan(npmOrYarn + " run android")}
     (Requires Android build tools)
     Starts the development server and loads your app on a connected Android
     device or emulator.
 
-  ${chalk.cyan(npmOrYarn + ' test')}
+  ${chalk.cyan(npmOrYarn + " test")}
     Starts the test runner.
 
-  ${chalk.cyan(npmOrYarn + ' run eject')}
+  ${chalk.cyan(npmOrYarn + " run eject")}
     Removes this tool and copies build dependencies, configuration files
     and scripts into the app directory. If you do this, you can’t go back!
 
 We suggest that you begin by typing:
 
-  ${chalk.cyan('cd ' + cdpath)}
-  ${chalk.cyan(npmOrYarn + ' start')}`
+  ${chalk.cyan("cd " + cdpath)}
+  ${chalk.cyan(npmOrYarn + " start")}`
   );
 
   if (readmeExists) {
     log(
       `
-${chalk.yellow('You had a `README.md` file, we renamed it to `README.old.md`')}`
+${chalk.yellow("You had a `README.md` file, we renamed it to `README.old.md`")}`
     );
   }
 
   log();
-  log('Happy hacking!');
+  log("Happy hacking!");
 };

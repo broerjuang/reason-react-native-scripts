@@ -1,5 +1,5 @@
 {
-  "name": "reason-react-native-scripts",
+  "name": "@broerjuang/reason-react-native-scripts",
   "version": "0.1.0",
   "description": "Configuration and scripts for Create React Native App using ReasonML.",
   "license": "BSD-3-Clause",
